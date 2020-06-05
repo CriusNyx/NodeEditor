@@ -30,19 +30,23 @@ public class NodeEditor : EditorWindow
 
     private bool regenerateContextMenu = false;
 
+    public string GetFilePathWithRespectToAssets()
+    {
+        return $"Assets/Resources/NodeEditorAutoSaves/{AutoSaveFileName}.asset";
+    }
+
+    public string GetFilePathWithRespectToResources()
+    {
+        return $"NodeEditorAutoSaves/{AutoSaveFileName}.asset";
+    }
+
     /// <summary>
     /// Loads the auto save file, or generates one if none exists
     /// </summary>
     private void LoadAutoSave()
     {
-        string resourcesLocalFolderPath = "NodeEditorWindow";
-        string resourcesFolderPath = "Assets/Resources";
-        string resourcesFilePath = $"{resourcesLocalFolderPath}/{AutoSaveFileName}";
-        string assetsFolderPath = $"{resourcesFolderPath}/{resourcesLocalFolderPath}";
-        string assetsFilePath = $"{assetsFolderPath}/{AutoSaveFileName}.asset";
-
         // Load the existing save file
-        save = Resources.Load<NodeEditorSave>(resourcesFilePath);
+        save = Resources.Load<NodeEditorSave>(GetFilePathWithRespectToResources());
 
         // Generate a new save file
         if (save == null)
@@ -53,20 +57,18 @@ public class NodeEditor : EditorWindow
 
     private void CreateNewAutoSave()
     {
-        string resourcesLocalFolderPath = "NodeEditorWindow";
-        string resourcesFolderPath = "Assets/Resources";
-        string resourcesFilePath = $"{resourcesLocalFolderPath}/{AutoSaveFileName}";
-        string assetsFolderPath = $"{resourcesFolderPath}/{resourcesLocalFolderPath}";
-        string assetsFilePath = $"{assetsFolderPath}/{AutoSaveFileName}.asset";
-
         save = CreateInstance(typeof(NodeEditorSave)) as NodeEditorSave;
-        if (!AssetDatabase.IsValidFolder(assetsFolderPath))
+        if (!AssetDatabase.IsValidFolder("Assets/Resources"))
         {
-            AssetDatabase.CreateFolder(resourcesFolderPath, resourcesLocalFolderPath);
+            AssetDatabase.CreateFolder("Assets", "Resources");
         }
-        AssetDatabase.CreateAsset(save, assetsFilePath);
+        if (!AssetDatabase.IsValidFolder("Assets/Resources/NodeEditorAutoSaves"))
+        {
+            AssetDatabase.CreateFolder("Assets/Resources", "NodeEditorAutoSaves");
+        }
+        AssetDatabase.CreateAsset(save, GetFilePathWithRespectToAssets());
         AssetDatabase.SaveAssets();
-        save = AssetDatabase.LoadAssetAtPath<NodeEditorSave>(assetsFilePath);
+        save = AssetDatabase.LoadAssetAtPath<NodeEditorSave>(GetFilePathWithRespectToAssets());
     }
 
     protected virtual void OnGUIProtected()
@@ -331,13 +333,7 @@ public class NodeEditor : EditorWindow
 
     private void DoAutoSave()
     {
-        string resourcesLocalFolderPath = "NodeEditorWindow";
-        string resourcesFolderPath = "Assets/Resources";
-        string resourcesFilePath = $"{resourcesLocalFolderPath}/{AutoSaveFileName}";
-        string assetsFolderPath = $"{resourcesFolderPath}/{resourcesLocalFolderPath}";
-        string assetsFilePath = $"{assetsFolderPath}/{AutoSaveFileName}.asset";
-
-        save.Save(assetsFilePath, this.GetType(), true);
+        save.Save(GetFilePathWithRespectToAssets(), this.GetType(), true);
     }
 
     protected void DrawFileBar()
